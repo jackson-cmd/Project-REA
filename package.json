@@ -1,0 +1,18 @@
+{
+  "name": "attack-demo",
+  "version": "1.0.0",
+  "description": "For project of resource exhaustion attack",
+  "main": "index.js",
+  "scripts": {
+    "start": "http-server -c-1"
+  },
+  "keywords": [
+    "Resource",
+    "CPU"
+  ],
+  "author": "Jackon Wang",
+  "license": "MIT",
+  "dependencies": {
+    "http-server": "^14.1.1"
+  }
+}
